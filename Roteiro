@@ -106,5 +106,9 @@ scrape_configs:
 
 #Instalar o Grafana por docker, verificar como que faz para salvar os arquivos no O.S
 
+#links 
+https://www.middlewareinventory.com/blog/ssl-expiry-and-uptime-monitor-for-urls-prometheus-blackbox-grafana/
+https://aristides.dev/monitorando-seus-servidores-com-grafana-e-prometheus/
+https://pt.linux-console.net/?p=7875#gsc.tab=0
 
 
