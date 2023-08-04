@@ -1,0 +1,110 @@
+#Roteiro para configuração de monitoramento de site SSL usando Grafana-Prometheus
+
+#Instalar o blackbox no servidor
+sudo apt install snapd
+sudo snap install prometheus-blackbox-exporter
+
+#comandos para reiniciar e verificar o status do blackbox
+sudo snap restart snap.prometheus-blackbox-exporter.daemon.service
+sudo snap services prometheus-blackbox-exporter.daemon
+
+#Configuração do blackbox.yml que se encontra no diretório /var/snap/prometheus-blackbox-exporter/27/blackbox.yml
+modules:
+  http_2xx:
+    prober: http
+    http:
+     preferred_ip_protocol: ip4
+  http_post_2xx:
+    prober: http
+    http:
+      method: POST
+  tcp_connect:
+    prober: tcp
+  pop3s_banner:
+    prober: tcp
+    tcp:
+      query_response:
+      - expect: "^+OK"
+      tls: true
+      tls_config:
+        insecure_skip_verify: false
+  ssh_banner:
+    prober: tcp
+    tcp:
+      query_response:
+      - expect: "^SSH-2.0-"
+      - send: "SSH-2.0-blackbox-ssh-check"
+  irc_banner:
+    prober: tcp
+    tcp:
+      query_response:
+      - send: "NICK prober"
+      - send: "USER prober prober prober :prober"
+      - expect: "PING :([^ ]+)"
+        send: "PONG ${1}"
+      - expect: "^:[^ ]+ 001"
+  icmp:
+
+#url http://x.x.x.x:9115/
+
+-------------------------------------------------------------------------------
+
+#Exemplo de criação do docker prometheus com o arquivo de configuração externo
+docker run --name prometheus --rm -p 9090:9090 -v /home/tatu/Documents/Monitoramento/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+#pode ser usado o dockerfile, se atentar nos diretórios
+FROM prom/prometheus
+
+# Copie o arquivo de configuração prometheus.yml para dentro do contêiner
+COPY prometheus.yml /etc/prometheus/prometheus.yml
+
+# Crie o diretório "rules" dentro do contêiner e copie o conteúdo da pasta local "rules" para dentro dele
+COPY rules/blackbox-rules.yml /opt/prometheus/rules/blackbox-rules.yml
+
+# Exponha a porta 9090 para acessar o Prometheus
+EXPOSE 9090
+
+#Configuração do arquivo prometheus.yml, alterar os ips - tem partes da aula da udemy, n atrapalha mas tb n ajuda, pode ser usado p monitorar o grafana :/
+global:
+  scrape_interval: 5s
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 192.168.1.201:9093
+rules_files:
+  - "rules/blackbox-rules.yml"
+scrape_configs:
+- job_name: prometheus
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+  - targets:
+    - localhost:9090
+- job_name: aula
+  static_configs:
+  - targets:
+    - 192.168.1.201:3000
+- job_name: 'blackbox'
+  metrics_path: /probe
+  params:
+    module: [http_2xx]  # Verificação 2xx significa que estamos interessados em sucesso
+  static_configs:
+    - targets:
+      - https://www.detran.am.gov.br  # Endereço da URL a ser monitorada
+      - https://www.matriculas.am.gov.br  # Endereço da URL a ser monitorada
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: 192.168.1.201:9115
+
+#urls do prometheus http://x.x.x.x:9090/targets e http://x.x.x.x:9090/
+
+#Instalar o Grafana por docker, verificar como que faz para salvar os arquivos no O.S
+
+
+
