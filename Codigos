@@ -1,6 +1,6 @@
 #Codigos para criação e futuro docker-file
 
-docker network create rede-monitoramento
-docker run -d --name prometheus -p 9090:9090 --network rede-monitoramento -v C:\Users\p001490\projetos\prometheus\prometheus.yml~:/etc/prometheus/prometheus.yml prom/prometheus
-docker run -d --name blackbox-exporter -p 9115:9115 --network rede-monitoramento -v C:\Users\p001490\projetos\prometheus\blackbox.yml~:/etc/blackbox_exporter/config.yml prom/blackbox-exporter
-docker run -d --name=grafana -p 3000:3000 --network rede-monitoramento grafana/grafana
+docker network create --driver=bridge --subnet=172.29.0.0/16 rede-monitoramento 
+docker run -d --name prometheus -p 9090:9090 --network rede-monitoramento --ip 172.29.0.2 -v C:\Users\p001490\projetos\prometheus\prometheus.yml~:/etc/prometheus/prometheus.yml prom/prometheus
+docker run -d --name blackbox-exporter -p 9115:9115 --network rede-monitoramento --ip 172.29.0.3 -v C:\Users\p001490\projetos\prometheus\blackbox.yml~:/etc/blackbox_exporter/config.yml prom/blackbox-exporter
+docker run -d --name=grafana -p 3000:3000 --network rede-monitoramento --ip 172.29.0.4 grafana/grafana
