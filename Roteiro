@@ -6,6 +6,9 @@
 sudo apt install snapd
 sudo snap install prometheus-blackbox-exporter
 
+#para rodar o prometheus-blackbox-exporter em um container
+docker run -p 9115:9115 -d prom/blackbox-exporter
+
 #comandos para reiniciar e verificar o status do blackbox
 sudo snap restart snap.prometheus-blackbox-exporter.daemon.service
 sudo snap services prometheus-blackbox-exporter.daemon
@@ -103,6 +106,34 @@ scrape_configs:
       target_label: instance
     - target_label: __address__
       replacement: 192.168.1.201:9115
+
+
+#prometheus.yml Original rodando na porta 9090
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+alerting:
+  alertmanagers:
+  - follow_redirects: true
+    enable_http2: true
+    scheme: http
+    timeout: 10s
+    api_version: v2
+    static_configs:
+    - targets: []
+scrape_configs:
+- job_name: prometheus
+  honor_timestamps: true
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: /metrics
+  scheme: http
+  follow_redirects: true
+  enable_http2: true
+  static_configs:
+  - targets:
+    - localhost:9090
 
 #urls do prometheus http://x.x.x.x:9090/targets e http://x.x.x.x:9090/
 
