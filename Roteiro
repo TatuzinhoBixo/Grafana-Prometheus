@@ -1,5 +1,7 @@
 #Roteiro para configuração de monitoramento de site SSL usando Grafana-Prometheus
 
+#Instalação do docker
+
 #Instalar o blackbox no servidor
 sudo apt install snapd
 sudo snap install prometheus-blackbox-exporter
